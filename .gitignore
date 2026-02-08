@@ -1,0 +1,23 @@
+# C++ Build Artifacts
+build/
+bin/
+*.exe
+*.o
+*.obj
+*.dll
+*.lib
+
+# Python Artifacts
+__pycache__/
+*.pyc
+venv/
+.env
+
+# IDE / Editor Settings
+.vscode/
+.idea/
+*.swp
+
+# OS System Files
+.DS_Store
+Thumbs.db
