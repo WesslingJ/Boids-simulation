@@ -1,12 +1,13 @@
 #include <iostream>
 #include <thread>
 #include <chrono>
-#include <string>
+#include <sstream>
 #include <zmq.hpp>
 #include <vector>
 #include <cstdlib>
 #include <ctime>
 #include <cmath>
+#include <random>
 
 struct SwarmConfig{
     float visual_range = 2.0f;
@@ -28,9 +29,15 @@ struct Boid
     float vx, vy;
 };
 
+//Random generator using <random>
+
 float random_float(float min, float max)
 {
-    return min + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / (max - min)));
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<float> dis(min, max);
+    
+    return dis(gen);
 };
 
 float distance(const Boid &b1, const Boid &b2)
@@ -42,8 +49,6 @@ float distance(const Boid &b1, const Boid &b2)
 
 int main()
 {
-    std::srand(static_cast<unsigned int>(std::time(nullptr)));
-
     // Engine simulation - ZMQ setup
     zmq::context_t context;
     zmq::socket_t socket(context, zmq::socket_type::pub);
@@ -51,7 +56,7 @@ int main()
 
     // Creating the boids
     std::vector<Boid> swarm;
-    int num_boids = 50;
+    int num_boids = 500;
 
     for (int i = 0; i < num_boids; ++i){
 
@@ -66,7 +71,7 @@ int main()
 
     while (true){
 
-        std::string data = "";
+        std::stringstream ss;
 
         // Reynolds algorithm: Separation, Alignment, Cohesion
         for (auto &current_boid : swarm){
@@ -171,10 +176,11 @@ int main()
                 current_boid.vy *= -1.0f;
             }
 
-            std::string boid_data = std::to_string(current_boid.x) + ";" + std::to_string(current_boid.y) + ";" + std::to_string(current_boid.vx) + ";" + std::to_string(current_boid.vy) + ";";
+            ss << current_boid.x << ";" << current_boid.y << ";" << current_boid.vx << ";" << current_boid.vy << ";";
 
-            data += boid_data;
         }
+
+        std::string data = ss.str();
 
         // What python will be catching
         zmq::message_t message(data.size());
